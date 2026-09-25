@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Details</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #f2f5f9;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      padding: 11px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .buttons {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      padding: 11px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    .save {
+      background: #1677ff;
+      color: white;
+    }
+
+    .clear {
+      background: #777;
+      color: white;
+    }
+
+    .edit {
+      background: #f0a000;
+      color: white;
+    }
+
+    .delete {
+      background: #e53935;
+      color: white;
+    }
+
+    .student-list {
+      margin-top: 30px;
+    }
+
+    .student-card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 12px;
+      background: #fafafa;
+    }
+
+    .student-card h3 {
+      margin-top: 0;
+    }
+
+    .student-card p {
+      margin: 6px 0;
+    }
+
+    @media (max-width: 600px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .full {
+        grid-column: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>Student Details</h1>
+
+  <form id="studentForm">
+
+    <div class="form-grid">
+
+      <div class="field">
+        <label>Student Name</label>
+        <input type="text" id="name" required>
+      </div>
+
+      <div class="field">
+        <label>Register Number</label>
+        <input type="text" id="registerNo" required>
+      </div>
+
+      <div class="field">
+        <label>Department</label>
+        <input type="text" id="department" required>
+      </div>
+
+      <div class="field">
+        <label>Year</label>
+        <select id="year">
+          <option value="">Select Year</option>
+          <option>1st Year</option>
+          <option>2nd Year</option>
+          <option>3rd Year</option>
+          <option>4th Year</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Section</label>
+        <input type="text" id="section">
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="email">
+      </div>
+
+      <div class="field">
+        <label>Phone Number</label>
+        <input type="tel" id="phone">
+      </div>
+
+      <div class="field">
+        <label>Date of Birth</label>
+        <input type="date" id="dob">
+      </div>
+
+      <div class="field full">
+        <label>Address</label>
+        <textarea id="address"></textarea>
+      </div>
+
+    </div>
+
+    <div class="buttons">
+      <button type="submit" class="save" id="saveButton">
+        Save Student
+      </button>
+
+      <button type="button" class="clear" onclick="clearForm()">
+        Clear
+      </button>
+    </div>
+
+  </form>
+
+  <div class="student-list">
+    <h2>Saved Students</h2>
+    <div id="studentList"></div>
+  </div>
+
+</div>
+
+
+<script>
+
+  let students = JSON.parse(localStorage.getItem("students")) || [];
+  let editingIndex = -1;
+
+  const form = document.getElementById("studentForm");
+  const saveButton = document.getElementById("saveButton");
+
+  form.addEventListener("submit", function(event) {
+
+    event.preventDefault();
+
+    const student = {
+      name: document.getElementById("name").value,
+      registerNo: document.getElementById("registerNo").value,
+      department: document.getElementById("department").value,
+      year: document.getElementById("year").value,
+      section: document.getElementById("section").value,
+      email: document.getElementById("email").value,
+      phone: document.getElementById("phone").value,
+      dob: document.getElementById("dob").value,
+      address: document.getElementById("address").value
+    };
+
+    if (editingIndex === -1) {
+
+      students.push(student);
+
+    } else {
+
+      students[editingIndex] = student;
+      editingIndex = -1;
+      saveButton.textContent = "Save Student";
+
+    }
+
+    localStorage.setItem("students", JSON.stringify(students));
+
+    clearForm();
+    displayStudents();
+
+  });
+
+
+  function displayStudents() {
+
+    const list = document.getElementById("studentList");
+
+    list.innerHTML = "";
+
+    if (students.length === 0) {
+
+      list.innerHTML = "<p>No students saved yet.</p>";
+      return;
+
+    }
+
+    students.forEach((student, index) => {
+
+      const card = document.createElement("div");
+
+      card.className = "student-card";
+
+      card.innerHTML = `
+        <h3>${student.name}</h3>
+
+        <p><strong>Register No:</strong> ${student.registerNo}</p>
+        <p><strong>Department:</strong> ${student.department}</p>
+        <p><strong>Year:</strong> ${student.year}</p>
+        <p><strong>Section:</strong> ${student.section}</p>
+        <p><strong>Email:</strong> ${student.email}</p>
+        <p><strong>Phone:</strong> ${student.phone}</p>
+        <p><strong>Date of Birth:</strong> ${student.dob}</p>
+        <p><strong>Address:</strong> ${student.address}</p>
+
+        <div class="buttons">
+
+          <button class="edit" onclick="editStudent(${index})">
+            Edit
+          </button>
+
+          <button class="delete" onclick="deleteStudent(${index})">
+            Delete
+          </button>
+
+        </div>
+      `;
+
+      list.appendChild(card);
+
+    });
+
+  }
+
+
+  function editStudent(index) {
+
+    const student = students[index];
+
+    document.getElementById("name").value = student.name;
+    document.getElementById("registerNo").value = student.registerNo;
+    document.getElementById("department").value = student.department;
+    document.getElementById("year").value = student.year;
+    document.getElementById("section").value = student.section;
+    document.getElementById("email").value = student.email;
+    document.getElementById("phone").value = student.phone;
+    document.getElementById("dob").value = student.dob;
+    document.getElementById("address").value = student.address;
+
+    editingIndex = index;
+
+    saveButton.textContent = "Update Student";
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+  }
+
+
+  function deleteStudent(index) {
+
+    if (confirm("Are you sure you want to delete this student?")) {
+
+      students.splice(index, 1);
+
+      localStorage.setItem("students", JSON.stringify(students));
+
+      displayStudents();
+
+    }
+
+  }
+
+
+  function clearForm() {
+
+    form.reset();
+
+    editingIndex = -1;
+
+    saveButton.textContent = "Save Student";
+
+  }
+
+
+  displayStudents();
+
+</script>
+
+</body>
+  </html>
